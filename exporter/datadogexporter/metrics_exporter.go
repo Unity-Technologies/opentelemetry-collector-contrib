@@ -73,6 +73,25 @@ func (exp *metricsExporter) PushMetricsData(ctx context.Context, md pdata.Metric
 	ms, _ := mapMetrics(exp.params.Logger, exp.cfg.Metrics, exp.prevPts, fallbackHost, md, exp.params.BuildInfo)
 	metrics.ProcessMetrics(ms, exp.cfg)
 
-	err := exp.client.PostMetrics(ms)
-	return err
+	var chunks [][]datadog.Metric
+
+	chunkSize := 512
+
+	for i := 0; i < len(ms); i += chunkSize {
+		end := i + chunkSize
+		if end > len(ms) {
+			end = len(ms)
+		}
+		chunks = append(chunks, ms[i:end])
+	}
+
+	for _, cMs := range chunks {
+		err := exp.client.PostMetrics(cMs)
+		if err != nil {
+			return err
+		}
+
+	}
+
+	return nil
 }

@@ -16,6 +16,7 @@ package metrics
 
 import (
 	"fmt"
+	"math"
 	"strings"
 
 	"go.opentelemetry.io/collector/component"
@@ -38,6 +39,14 @@ func newMetric(name string, ts uint64, value float64, tags []string) datadog.Met
 	// Transform UnixNano timestamp into Unix timestamp
 	// 1 second = 1e9 ns
 	timestamp := float64(ts / 1e9)
+
+	if math.IsNaN(value) {
+		value = 0.0
+	} else if math.IsInf(value, 1) {
+		value = math.MaxFloat64
+	} else if math.IsInf(value, -1) {
+		value = -math.MaxFloat64
+	}
 
 	metric := datadog.Metric{
 		Points: []datadog.DataPoint{[2]*float64{&timestamp, &value}},
