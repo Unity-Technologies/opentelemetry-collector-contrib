@@ -4,7 +4,8 @@ go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.40.19
-	github.com/google/cadvisor v0.39.2
+	github.com/google/cadvisor v0.42.0
+	github.com/matttproud/golang_protobuf_extensions v1.0.2-0.20181231171920-c182affec369 // indirect
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil v0.0.0-00010101000000-000000000000
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/containerinsight v0.0.0-00010101000000-000000000000
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/k8s v0.0.0-00010101000000-000000000000
@@ -13,6 +14,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/kubelet v0.0.0-00010101000000-000000000000
 	github.com/shirou/gopsutil v3.21.7+incompatible
 	github.com/stretchr/testify v1.7.0
+	github.com/vishvananda/netns v0.0.0-20200728191858-db3c7e526aae // indirect
 	go.opentelemetry.io/collector v0.31.1-0.20210810171211-8038673eba9e
 	go.opentelemetry.io/collector/model v0.31.1-0.20210810171211-8038673eba9e
 	go.uber.org/zap v1.19.0
