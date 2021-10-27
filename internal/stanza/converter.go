@@ -393,7 +393,7 @@ func Convert(ent *entry.Entry) pdata.Logs {
 
 // convertInto converts entry.Entry into provided pdata.LogRecord.
 func convertInto(ent *entry.Entry, dest pdata.LogRecord) {
-	dest.SetTimestamp(pdata.TimestampFromTime(ent.Timestamp))
+	dest.SetTimestamp(pdata.NewTimestampFromTime(ent.Timestamp))
 	dest.SetSeverityNumber(sevMap[ent.Severity])
 	dest.SetSeverityText(sevTextMap[ent.Severity])
 
@@ -556,7 +556,7 @@ var sevMap = map[entry.Severity]pdata.SeverityNumber{
 }
 
 var sevTextMap = map[entry.Severity]string{
-	entry.Default: "Undefined",
+	entry.Default: "",
 	entry.Trace:   "Trace",
 	entry.Trace2:  "Trace2",
 	entry.Trace3:  "Trace3",

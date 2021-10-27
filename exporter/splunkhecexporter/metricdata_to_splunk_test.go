@@ -15,7 +15,10 @@
 package splunkhecexporter
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"math"
 	"testing"
 	"time"
 
@@ -32,7 +35,7 @@ func Test_metricDataToSplunk(t *testing.T) {
 	unixSecs := int64(1574092046)
 	unixNSecs := int64(11 * time.Millisecond)
 	tsUnix := time.Unix(unixSecs, unixNSecs)
-	ts := pdata.TimestampFromTime(tsUnix)
+	ts := pdata.NewTimestampFromTime(tsUnix)
 	tsMSecs := timestampToSecondsWithMillisecondPrecision(ts)
 
 	doubleVal := 1234.5678
@@ -46,6 +49,7 @@ func Test_metricDataToSplunk(t *testing.T) {
 		metricsDataFn            func() pdata.Metrics
 		wantSplunkMetrics        []*splunk.Event
 		wantNumDroppedTimeseries int
+		configFn                 func() *Config
 	}{
 		{
 			name: "empty_resource_metrics",
@@ -54,11 +58,17 @@ func Test_metricDataToSplunk(t *testing.T) {
 				metrics.ResourceMetrics().AppendEmpty()
 				return metrics
 			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
 		},
 		{
 			name: "nil_instrumentation_library_metrics",
 			metricsDataFn: func() pdata.Metrics {
 				return newMetricsWithResources()
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
 			},
 		},
 		{
@@ -68,6 +78,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 				ilm := metrics.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0)
 				ilm.Metrics().AppendEmpty()
 				return metrics
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
 			},
 			wantNumDroppedTimeseries: 1,
 		},
@@ -81,6 +94,69 @@ func Test_metricDataToSplunk(t *testing.T) {
 				gauge.SetDataType(pdata.MetricDataTypeGauge)
 				return metrics
 			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
+		},
+		{
+			name: "nan_gauge_value",
+			metricsDataFn: func() pdata.Metrics {
+				metrics := newMetricsWithResources()
+				ilm := metrics.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0)
+				gauge := ilm.Metrics().AppendEmpty()
+				gauge.SetName("gauge_with_dims")
+				gauge.SetDataType(pdata.MetricDataTypeGauge)
+				dp := gauge.Gauge().DataPoints().AppendEmpty()
+				dp.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
+				dp.SetDoubleVal(math.NaN())
+				return metrics
+			},
+			wantSplunkMetrics: []*splunk.Event{
+				commonSplunkMetric("gauge_with_dims", tsMSecs, []string{"k0", "k1", "metric_type"}, []interface{}{"v0", "v1", "Gauge"}, "NaN", "", "", "", "unknown"),
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
+		},
+		{
+			name: "+Inf_gauge_value",
+			metricsDataFn: func() pdata.Metrics {
+				metrics := newMetricsWithResources()
+				ilm := metrics.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0)
+				gauge := ilm.Metrics().AppendEmpty()
+				gauge.SetName("gauge_with_dims")
+				gauge.SetDataType(pdata.MetricDataTypeGauge)
+				dp := gauge.Gauge().DataPoints().AppendEmpty()
+				dp.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
+				dp.SetDoubleVal(math.Inf(1))
+				return metrics
+			},
+			wantSplunkMetrics: []*splunk.Event{
+				commonSplunkMetric("gauge_with_dims", tsMSecs, []string{"k0", "k1", "metric_type"}, []interface{}{"v0", "v1", "Gauge"}, "+Inf", "", "", "", "unknown"),
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
+		},
+		{
+			name: "-Inf_gauge_value",
+			metricsDataFn: func() pdata.Metrics {
+				metrics := newMetricsWithResources()
+				ilm := metrics.ResourceMetrics().At(0).InstrumentationLibraryMetrics().At(0)
+				gauge := ilm.Metrics().AppendEmpty()
+				gauge.SetName("gauge_with_dims")
+				gauge.SetDataType(pdata.MetricDataTypeGauge)
+				dp := gauge.Gauge().DataPoints().AppendEmpty()
+				dp.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
+				dp.SetDoubleVal(math.Inf(-1))
+				return metrics
+			},
+			wantSplunkMetrics: []*splunk.Event{
+				commonSplunkMetric("gauge_with_dims", tsMSecs, []string{"k0", "k1", "metric_type"}, []interface{}{"v0", "v1", "Gauge"}, "-Inf", "", "", "", "unknown"),
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
 		},
 		{
 			name: "nil_histogram_value",
@@ -92,6 +168,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 				histogram.SetDataType(pdata.MetricDataTypeHistogram)
 				return metrics
 			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
 		},
 		{
 			name: "nil_sum_value",
@@ -102,6 +181,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 				sum.SetName("sum_with_dims")
 				sum.SetDataType(pdata.MetricDataTypeSum)
 				return metrics
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
 			},
 		},
 		{
@@ -115,6 +197,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 				gauge.Gauge().DataPoints().AppendEmpty()
 				return metrics
 			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
 		},
 		{
 			name: "histogram_empty_data_point",
@@ -126,6 +211,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 				histogram.SetDataType(pdata.MetricDataTypeHistogram)
 				histogram.Histogram().DataPoints().AppendEmpty()
 				return metrics
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
 			},
 		},
 		{
@@ -139,6 +227,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 				sum.Sum().DataPoints().AppendEmpty()
 				return metrics
 			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
 		},
 		{
 			name: "gauges",
@@ -146,7 +237,7 @@ func Test_metricDataToSplunk(t *testing.T) {
 
 				metrics := pdata.NewMetrics()
 				rm := metrics.ResourceMetrics().AppendEmpty()
-				rm.Resource().Attributes().InsertString("service.name", "mysource")
+				rm.Resource().Attributes().InsertString("com.splunk.source", "mysource")
 				rm.Resource().Attributes().InsertString("host.name", "myhost")
 				rm.Resource().Attributes().InsertString("com.splunk.sourcetype", "mysourcetype")
 				rm.Resource().Attributes().InsertString("com.splunk.index", "myindex")
@@ -159,21 +250,24 @@ func Test_metricDataToSplunk(t *testing.T) {
 				doubleGauge.SetDataType(pdata.MetricDataTypeGauge)
 				doubleDataPt := doubleGauge.Gauge().DataPoints().AppendEmpty()
 				doubleDataPt.SetDoubleVal(doubleVal)
-				doubleDataPt.SetTimestamp(pdata.TimestampFromTime(tsUnix))
+				doubleDataPt.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
 
 				intGauge := ilm.Metrics().AppendEmpty()
 				intGauge.SetName("gauge_int_with_dims")
 				intGauge.SetDataType(pdata.MetricDataTypeGauge)
 				intDataPt := intGauge.Gauge().DataPoints().AppendEmpty()
 				intDataPt.SetIntVal(int64Val)
-				intDataPt.SetTimestamp(pdata.TimestampFromTime(tsUnix))
-				intDataPt.SetTimestamp(pdata.TimestampFromTime(tsUnix))
+				intDataPt.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
+				intDataPt.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
 
 				return metrics
 			},
 			wantSplunkMetrics: []*splunk.Event{
-				commonSplunkMetric("gauge_double_with_dims", tsMSecs, []string{"com.splunk.index", "com.splunk.sourcetype", "host.name", "service.name", "k0", "k1", "metric_type"}, []interface{}{"myindex", "mysourcetype", "myhost", "mysource", "v0", "v1", "Gauge"}, doubleVal, "mysource", "mysourcetype", "myindex", "myhost"),
-				commonSplunkMetric("gauge_int_with_dims", tsMSecs, []string{"com.splunk.index", "com.splunk.sourcetype", "host.name", "service.name", "k0", "k1", "metric_type"}, []interface{}{"myindex", "mysourcetype", "myhost", "mysource", "v0", "v1", "Gauge"}, int64Val, "mysource", "mysourcetype", "myindex", "myhost"),
+				commonSplunkMetric("gauge_double_with_dims", tsMSecs, []string{"host.name", "k0", "k1", "metric_type"}, []interface{}{"myhost", "v0", "v1", "Gauge"}, doubleVal, "mysource", "mysourcetype", "myindex", "myhost"),
+				commonSplunkMetric("gauge_int_with_dims", tsMSecs, []string{"host.name", "k0", "k1", "metric_type"}, []interface{}{"myhost", "v0", "v1", "Gauge"}, int64Val, "mysource", "mysourcetype", "myindex", "myhost"),
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
 			},
 		},
 
@@ -190,8 +284,11 @@ func Test_metricDataToSplunk(t *testing.T) {
 				histogramPt.SetBucketCounts([]uint64{4, 2, 3})
 				histogramPt.SetSum(23)
 				histogramPt.SetCount(7)
-				histogramPt.SetTimestamp(pdata.TimestampFromTime(tsUnix))
+				histogramPt.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
 				return metrics
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
 			},
 		},
 		{
@@ -207,7 +304,7 @@ func Test_metricDataToSplunk(t *testing.T) {
 				histogramPt.SetBucketCounts(distributionCounts)
 				histogramPt.SetSum(23)
 				histogramPt.SetCount(7)
-				histogramPt.SetTimestamp(pdata.TimestampFromTime(tsUnix))
+				histogramPt.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
 				return metrics
 			},
 			wantSplunkMetrics: []*splunk.Event{
@@ -294,6 +391,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 					},
 				},
 			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
 		},
 
 		{
@@ -324,6 +424,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 					},
 				},
 			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
 		},
 		{
 			name: "double_sum",
@@ -352,6 +455,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 						"metric_type":                      "Sum",
 					},
 				},
+			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
 			},
 		},
 		{
@@ -431,6 +537,9 @@ func Test_metricDataToSplunk(t *testing.T) {
 					},
 				},
 			},
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
 		},
 		{
 			name: "unknown_type",
@@ -443,15 +552,68 @@ func Test_metricDataToSplunk(t *testing.T) {
 				return metrics
 			},
 			wantNumDroppedTimeseries: 1,
+			configFn: func() *Config {
+				return createDefaultConfig().(*Config)
+			},
+		},
+
+		{
+			name: "custom_config_mapping",
+			metricsDataFn: func() pdata.Metrics {
+
+				metrics := pdata.NewMetrics()
+				rm := metrics.ResourceMetrics().AppendEmpty()
+				rm.Resource().Attributes().InsertString("mysource", "mysource2")
+				rm.Resource().Attributes().InsertString("myhost", "myhost2")
+				rm.Resource().Attributes().InsertString("mysourcetype", "mysourcetype2")
+				rm.Resource().Attributes().InsertString("myindex", "myindex2")
+				rm.Resource().Attributes().InsertString("k0", "v0")
+				rm.Resource().Attributes().InsertString("k1", "v1")
+				ilm := rm.InstrumentationLibraryMetrics().AppendEmpty()
+
+				doubleGauge := ilm.Metrics().AppendEmpty()
+				doubleGauge.SetName("gauge_double_with_dims")
+				doubleGauge.SetDataType(pdata.MetricDataTypeGauge)
+				doubleDataPt := doubleGauge.Gauge().DataPoints().AppendEmpty()
+				doubleDataPt.SetDoubleVal(doubleVal)
+				doubleDataPt.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
+
+				intGauge := ilm.Metrics().AppendEmpty()
+				intGauge.SetName("gauge_int_with_dims")
+				intGauge.SetDataType(pdata.MetricDataTypeGauge)
+				intDataPt := intGauge.Gauge().DataPoints().AppendEmpty()
+				intDataPt.SetIntVal(int64Val)
+				intDataPt.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
+				intDataPt.SetTimestamp(pdata.NewTimestampFromTime(tsUnix))
+
+				return metrics
+			},
+			wantSplunkMetrics: []*splunk.Event{
+				commonSplunkMetric("gauge_double_with_dims", tsMSecs, []string{"host.name", "k0", "k1", "metric_type"}, []interface{}{"myhost2", "v0", "v1", "Gauge"}, doubleVal, "mysource2", "mysourcetype2", "myindex2", "myhost2"),
+				commonSplunkMetric("gauge_int_with_dims", tsMSecs, []string{"host.name", "k0", "k1", "metric_type"}, []interface{}{"myhost2", "v0", "v1", "Gauge"}, int64Val, "mysource2", "mysourcetype2", "myindex2", "myhost2"),
+			},
+			configFn: func() *Config {
+				cfg := createDefaultConfig().(*Config)
+				cfg.HecToOtelAttrs.SourceType = "mysourcetype"
+				cfg.HecToOtelAttrs.Source = "mysource"
+				cfg.HecToOtelAttrs.Host = "myhost"
+				cfg.HecToOtelAttrs.Index = "myindex"
+				return cfg
+			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			md := tt.metricsDataFn()
-			gotMetrics, gotNumDroppedTimeSeries := metricDataToSplunk(logger, md, &Config{})
+			cfg := tt.configFn()
+			gotMetrics, gotNumDroppedTimeSeries := metricDataToSplunk(logger, md, cfg)
 			assert.Equal(t, tt.wantNumDroppedTimeseries, gotNumDroppedTimeSeries)
+			encoder := json.NewEncoder(ioutil.Discard)
+
 			for i, want := range tt.wantSplunkMetrics {
 				assert.Equal(t, want, gotMetrics[i])
+				err := encoder.Encode(gotMetrics[i])
+				assert.NoError(t, err)
 			}
 		})
 	}

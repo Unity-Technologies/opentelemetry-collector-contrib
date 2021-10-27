@@ -24,12 +24,13 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
-	"go.opentelemetry.io/collector/exporter/jaegerexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
-	"go.opentelemetry.io/collector/exporter/prometheusexporter"
 	"go.opentelemetry.io/collector/processor/batchprocessor"
-	"go.opentelemetry.io/collector/receiver/jaegerreceiver"
 	"go.opentelemetry.io/collector/receiver/otlpreceiver"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/prometheusexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/jaegerreceiver"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -84,12 +85,12 @@ func TestLoadConfig(t *testing.T) {
 			require.NotNil(t, cfg)
 			assert.Equal(t,
 				&Config{
-					ProcessorSettings:       config.NewProcessorSettings(config.NewID(typeStr)),
+					ProcessorSettings:       config.NewProcessorSettings(config.NewComponentID(typeStr)),
 					MetricsExporter:         tc.wantMetricsExporter,
 					LatencyHistogramBuckets: tc.wantLatencyHistogramBuckets,
 					Dimensions:              tc.wantDimensions,
 				},
-				cfg.Processors[config.NewID(typeStr)],
+				cfg.Processors[config.NewComponentID(typeStr)],
 			)
 		})
 	}

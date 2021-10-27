@@ -33,6 +33,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/aws/awsutil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry"
 )
 
 const (
@@ -75,7 +76,7 @@ func newEmfPusher(
 	}
 
 	// create CWLogs client with aws session config
-	svcStructuredLog := newCloudWatchLogsClient(logger, awsConfig, params.BuildInfo, session)
+	svcStructuredLog := newCloudWatchLogsClient(logger, awsConfig, params.BuildInfo, expConfig.LogGroupName, session)
 	collectorIdentifier, _ := uuid.NewRandom()
 
 	expConfig.Validate()
@@ -103,13 +104,16 @@ func newEmfExporter(
 		return nil, err
 	}
 
-	return exporterhelper.NewMetricsExporter(
+	exporter, err := exporterhelper.NewMetricsExporter(
 		config,
 		set,
 		exp.(*emfExporter).pushMetricsData,
-		exporterhelper.WithResourceToTelemetryConversion(config.(*Config).ResourceToTelemetrySettings),
 		exporterhelper.WithShutdown(exp.(*emfExporter).Shutdown),
 	)
+	if err != nil {
+		return nil, err
+	}
+	return resourcetotelemetry.WrapMetricsExporter(config.(*Config).ResourceToTelemetrySettings, exporter), nil
 }
 
 func (emf *emfExporter) pushMetricsData(_ context.Context, md pdata.Metrics) error {
@@ -245,7 +249,7 @@ func (emf *emfExporter) Start(ctx context.Context, host component.Host) error {
 func wrapErrorIfBadRequest(err *error) error {
 	_, ok := (*err).(awserr.RequestFailure)
 	if ok && (*err).(awserr.RequestFailure).StatusCode() < 500 {
-		return consumererror.Permanent(*err)
+		return consumererror.NewPermanent(*err)
 	}
 	return *err
 }

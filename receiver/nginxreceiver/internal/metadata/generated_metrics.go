@@ -82,15 +82,6 @@ func (m *metricStruct) ByName(n string) MetricIntf {
 	return metricsByName[n]
 }
 
-func (m *metricStruct) FactoriesByName() map[string]func(pdata.Metric) {
-	return map[string]func(pdata.Metric){
-		Metrics.NginxConnectionsAccepted.Name(): Metrics.NginxConnectionsAccepted.Init,
-		Metrics.NginxConnectionsCurrent.Name():  Metrics.NginxConnectionsCurrent.Init,
-		Metrics.NginxConnectionsHandled.Name():  Metrics.NginxConnectionsHandled.Init,
-		Metrics.NginxRequests.Name():            Metrics.NginxRequests.Init,
-	}
-}
-
 // Metrics contains a set of methods for each metric that help with
 // manipulating those metrics.
 var Metrics = &metricStruct{
@@ -102,7 +93,7 @@ var Metrics = &metricStruct{
 			metric.SetUnit("connections")
 			metric.SetDataType(pdata.MetricDataTypeSum)
 			metric.Sum().SetIsMonotonic(true)
-			metric.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			metric.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 		},
 	},
 	&metricImpl{
@@ -122,7 +113,7 @@ var Metrics = &metricStruct{
 			metric.SetUnit("connections")
 			metric.SetDataType(pdata.MetricDataTypeSum)
 			metric.Sum().SetIsMonotonic(true)
-			metric.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			metric.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 		},
 	},
 	&metricImpl{
@@ -133,7 +124,7 @@ var Metrics = &metricStruct{
 			metric.SetUnit("requests")
 			metric.SetDataType(pdata.MetricDataTypeSum)
 			metric.Sum().SetIsMonotonic(true)
-			metric.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			metric.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 		},
 	},
 }

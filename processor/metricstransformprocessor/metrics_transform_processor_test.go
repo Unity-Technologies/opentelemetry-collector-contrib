@@ -26,9 +26,10 @@ import (
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer/consumertest"
 	"go.opentelemetry.io/collector/processor/processorhelper"
-	"go.opentelemetry.io/collector/translator/internaldata"
 	"go.uber.org/zap"
 	"google.golang.org/protobuf/testing/protocmp"
+
+	internaldata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus"
 )
 
 func TestMetricsTransformProcessor(t *testing.T) {
@@ -40,7 +41,7 @@ func TestMetricsTransformProcessor(t *testing.T) {
 
 			mtp, err := processorhelper.NewMetricsProcessor(
 				&Config{
-					ProcessorSettings: config.NewProcessorSettings(config.NewID(typeStr)),
+					ProcessorSettings: config.NewProcessorSettings(config.NewComponentID(typeStr)),
 				},
 				next,
 				p.processMetrics,

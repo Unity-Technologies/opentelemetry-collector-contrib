@@ -37,9 +37,9 @@ func TestLoadConfig(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, cfg)
 
-	assert.Equal(t, cfg.Processors[config.NewID(typeStr)],
+	assert.Equal(t, cfg.Processors[config.NewComponentID(typeStr)],
 		&Config{
-			ProcessorSettings:       config.NewProcessorSettings(config.NewID(typeStr)),
+			ProcessorSettings:       config.NewProcessorSettings(config.NewComponentID(typeStr)),
 			DecisionWait:            10 * time.Second,
 			NumTraces:               100,
 			ExpectedNewTracesPerSec: 10,
@@ -59,17 +59,22 @@ func TestLoadConfig(t *testing.T) {
 					NumericAttributeCfg: NumericAttributeCfg{Key: "key1", MinValue: 50, MaxValue: 100},
 				},
 				{
-					Name:          "test-policy-4",
+					Name:             "test-policy-4",
+					Type:             Probabilistic,
+					ProbabilisticCfg: ProbabilisticCfg{HashSalt: "custom-salt", SamplingPercentage: 0.1},
+				},
+				{
+					Name:          "test-policy-5",
 					Type:          StatusCode,
 					StatusCodeCfg: StatusCodeCfg{StatusCodes: []string{"ERROR", "UNSET"}},
 				},
 				{
-					Name:               "test-policy-5",
+					Name:               "test-policy-6",
 					Type:               StringAttribute,
 					StringAttributeCfg: StringAttributeCfg{Key: "key2", Values: []string{"value1", "value2"}},
 				},
 				{
-					Name:            "test-policy-6",
+					Name:            "test-policy-7",
 					Type:            RateLimiting,
 					RateLimitingCfg: RateLimitingCfg{SpansPerSecond: 35},
 				},

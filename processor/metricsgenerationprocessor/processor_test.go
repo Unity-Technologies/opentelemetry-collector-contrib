@@ -282,7 +282,7 @@ func TestMetricsGenerationProcessor(t *testing.T) {
 			// next stores the results of the filter metric processor
 			next := new(consumertest.MetricsSink)
 			cfg := &Config{
-				ProcessorSettings: config.NewProcessorSettings(config.NewID(typeStr)),
+				ProcessorSettings: config.NewProcessorSettings(config.NewComponentID(typeStr)),
 				Rules:             test.rules,
 			}
 			factory := NewFactory()
@@ -353,7 +353,7 @@ func generateTestMetrics(tm testMetric) pdata.Metrics {
 		m.SetDataType(pdata.MetricDataTypeGauge)
 		for _, value := range tm.metricValues[i] {
 			dp := m.Gauge().DataPoints().AppendEmpty()
-			dp.SetTimestamp(pdata.TimestampFromTime(now.Add(10 * time.Second)))
+			dp.SetTimestamp(pdata.NewTimestampFromTime(now.Add(10 * time.Second)))
 			dp.SetDoubleVal(value)
 		}
 	}
@@ -373,7 +373,7 @@ func generateTestMetricsWithIntDatapoint(tm testMetricIntGauge) pdata.Metrics {
 		m.SetDataType(pdata.MetricDataTypeGauge)
 		for _, value := range tm.metricValues[i] {
 			dp := m.Gauge().DataPoints().AppendEmpty()
-			dp.SetTimestamp(pdata.TimestampFromTime(now.Add(10 * time.Second)))
+			dp.SetTimestamp(pdata.NewTimestampFromTime(now.Add(10 * time.Second)))
 			dp.SetIntVal(value)
 		}
 	}
