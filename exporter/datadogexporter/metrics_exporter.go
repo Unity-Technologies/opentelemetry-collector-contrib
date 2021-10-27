@@ -200,6 +200,7 @@ func (exp *metricsExporter) PushMetricsData(ctx context.Context, md pdata.Metric
 		if err != nil {
 			return err
 		}
+	}
 
 	return nil
 }
