@@ -9,6 +9,6 @@ require (
 	go.opencensus.io v0.23.0
 	go.opentelemetry.io/collector v0.31.1-0.20210810171211-8038673eba9e
 	go.opentelemetry.io/collector/model v0.31.1-0.20210810171211-8038673eba9e
-	go.opentelemetry.io/otel v1.0.0-RC2
+	go.opentelemetry.io/otel v1.1.0
 	go.uber.org/zap v1.19.0
 )
