@@ -1723,8 +1723,9 @@ github.com/signalfx/omnition-kinesis-producer v0.5.0/go.mod h1:5tt4Zb0FS0QRKXVGF
 github.com/signalfx/opencensus-go-exporter-kinesis v0.6.3 h1:ooYCDeKtuwmT+HNBkv/VjkPp97f4xAmA6COgHQS9+as=
 github.com/signalfx/opencensus-go-exporter-kinesis v0.6.3/go.mod h1:iKTZPIUUpRI9Hp2yAMb2qNXl6itkEd2pxAznG08Y6YU=
 github.com/signalfx/sapm-proto v0.4.0/go.mod h1:x3gtwJ1GRejtkghB4nYpwixh2zqJrLbPU959ZNhM0Fk=
-github.com/signalfx/sapm-proto v0.7.0 h1:u6MErnxMDK5WQgOfPEMcS7gti5DQJKppAmAml8jJYbo=
 github.com/signalfx/sapm-proto v0.7.0/go.mod h1:y4b+wJlBKH7AzdastAgdWHrfMBB/QYN+u+20SEA94C4=
+github.com/signalfx/sapm-proto v0.7.2 h1:iM/y3gezQm1/j7JBS0gXhEJ8ROeneb6DY7n0OcnvLks=
+github.com/signalfx/sapm-proto v0.7.2/go.mod h1:HLufOh6Gd2altGxbeve+s6hh0EWCWoOM7MmuYuvs5PI=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20201202163743-65b4fa925fc8 h1:pK1/PlwhBPVa2+SqAo7nVfwE/zbGz1p3WlcqwcoLSBk=
 github.com/signalfx/signalfx-agent/pkg/apm v0.0.0-20201202163743-65b4fa925fc8/go.mod h1:pNaqfprM2bSCBhE8sTT2NtasSWEsIJbrmnIF0ap/Cvg=
 github.com/sirupsen/logrus v1.0.4-0.20170822132746-89742aefa4b2/go.mod h1:pMByvHTf9Beacp5x1UXfOR9xyW/9antXMhjMPG0dEzc=
