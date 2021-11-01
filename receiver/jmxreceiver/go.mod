@@ -10,5 +10,5 @@ require (
 	go.opentelemetry.io/collector v0.31.1-0.20210810171211-8038673eba9e
 	go.opentelemetry.io/collector/model v0.31.1-0.20210810171211-8038673eba9e
 	go.uber.org/atomic v1.9.0
-	go.uber.org/zap v1.19.0
+	go.uber.org/zap v1.19.1
 )
