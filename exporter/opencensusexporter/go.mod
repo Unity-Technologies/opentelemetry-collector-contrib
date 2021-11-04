@@ -9,7 +9,7 @@ require (
 	github.com/open-telemetry/opentelemetry-collector-contrib/receiver/opencensusreceiver v0.37.1
 	github.com/stretchr/testify v1.7.0
 	go.opentelemetry.io/collector v0.37.0
-	go.opentelemetry.io/collector/model v0.37.0
+	go.opentelemetry.io/collector/model v0.38.0
 	google.golang.org/grpc v1.41.0
 )
 
