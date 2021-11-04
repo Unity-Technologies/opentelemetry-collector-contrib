@@ -374,8 +374,8 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	gopkg.in/zorkian/go-datadog-api.v2 v2.30.0 // indirect
-	k8s.io/api v0.22.2 // indirect
-	k8s.io/apimachinery v0.22.2 // indirect
+	k8s.io/api v0.22.3 // indirect
+	k8s.io/apimachinery v0.22.3 // indirect
 	k8s.io/client-go v0.22.2 // indirect
 	k8s.io/klog/v2 v2.9.0 // indirect
 	k8s.io/kubelet v0.22.2 // indirect
