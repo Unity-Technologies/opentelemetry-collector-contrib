@@ -34,10 +34,11 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/testutil"
-	"go.opentelemetry.io/collector/testutil/metricstestutil"
-	"go.opentelemetry.io/collector/translator/internaldata"
 	"google.golang.org/protobuf/types/known/timestamppb"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/metricstestutil"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal/testutil"
+	internaldata "github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/opencensus"
 )
 
 func TestNew(t *testing.T) {
@@ -53,7 +54,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "invalid_tcp_addr",
 			config: &Config{
-				ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+				ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 				Endpoint:         "http://localhost:2003",
 			},
 			wantErr: true,
@@ -61,7 +62,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "invalid_timeout",
 			config: &Config{
-				ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+				ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 				Timeout:          -5 * time.Second,
 			},
 			wantErr: true,

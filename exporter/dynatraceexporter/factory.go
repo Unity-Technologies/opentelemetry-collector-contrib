@@ -23,6 +23,7 @@ import (
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 
 	dtconfig "github.com/open-telemetry/opentelemetry-collector-contrib/exporter/dynatraceexporter/config"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry"
 )
 
 const (
@@ -42,17 +43,18 @@ func NewFactory() component.ExporterFactory {
 // createDefaultConfig creates the default exporter configuration
 func createDefaultConfig() config.Exporter {
 	return &dtconfig.Config{
-		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		RetrySettings:    exporterhelper.DefaultRetrySettings(),
 		QueueSettings:    exporterhelper.DefaultQueueSettings(),
-		ResourceToTelemetrySettings: exporterhelper.ResourceToTelemetrySettings{
+		ResourceToTelemetrySettings: resourcetotelemetry.Settings{
 			Enabled: false,
 		},
 
 		APIToken:           "",
 		HTTPClientSettings: confighttp.HTTPClientSettings{Endpoint: ""},
 
-		Tags: []string{},
+		Tags:              []string{},
+		DefaultDimensions: make(map[string]string),
 	}
 }
 
@@ -65,19 +67,22 @@ func createMetricsExporter(
 
 	cfg := c.(*dtconfig.Config)
 
-	if err := cfg.Sanitize(); err != nil {
+	if err := cfg.ValidateAndConfigureHTTPClientSettings(); err != nil {
 		return nil, err
 	}
 
 	exp := newMetricsExporter(set, cfg)
 
-	return exporterhelper.NewMetricsExporter(
+	exporter, err := exporterhelper.NewMetricsExporter(
 		cfg,
 		set,
 		exp.PushMetricsData,
 		exporterhelper.WithQueue(cfg.QueueSettings),
 		exporterhelper.WithRetry(cfg.RetrySettings),
 		exporterhelper.WithStart(exp.start),
-		exporterhelper.WithResourceToTelemetryConversion(cfg.ResourceToTelemetrySettings),
 	)
+	if err != nil {
+		return nil, err
+	}
+	return resourcetotelemetry.WrapMetricsExporter(cfg.ResourceToTelemetrySettings, exporter), nil
 }

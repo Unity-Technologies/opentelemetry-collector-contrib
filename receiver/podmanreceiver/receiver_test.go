@@ -12,21 +12,26 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+//go:build !windows
 // +build !windows
-// TODO review if tests should succeed on Windows
 
 package podmanreceiver
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"go.opentelemetry.io/collector/receiver/scraperhelper"
-	"go.opentelemetry.io/collector/testbed/testbed"
+	"go.opentelemetry.io/collector/component/componenttest"
+	"go.opentelemetry.io/collector/consumer"
+	"go.opentelemetry.io/collector/consumer/consumertest"
+	"go.opentelemetry.io/collector/model/pdata"
 	"go.uber.org/zap"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/scraperhelper"
 )
 
 func TestNewReceiver(t *testing.T) {
@@ -36,28 +41,78 @@ func TestNewReceiver(t *testing.T) {
 			CollectionInterval: 1 * time.Second,
 		},
 	}
-	logger := zap.NewNop()
-	nextConsumer := &testbed.MockMetricConsumer{}
-	mr, err := NewReceiver(context.Background(), logger, config, nextConsumer)
+	nextConsumer := consumertest.NewNop()
+	mr, err := newReceiver(context.Background(), componenttest.NewNopReceiverCreateSettings(), config, nextConsumer, nil)
+
 	assert.NotNil(t, mr)
 	assert.Nil(t, err)
 
-	receiver := mr.(*Receiver)
+	receiver := mr.(*receiver)
 	assert.Equal(t, config, receiver.config)
-	assert.Equal(t, nextConsumer, receiver.nextConsumer)
-	assert.Equal(t, logger, receiver.logger)
+	assert.Same(t, nextConsumer, receiver.nextConsumer)
 }
 
 func TestNewReceiverErrors(t *testing.T) {
-	logger := zap.NewNop()
-
-	r, err := NewReceiver(context.Background(), logger, &Config{}, &testbed.MockMetricConsumer{})
+	r, err := newReceiver(context.Background(), componenttest.NewNopReceiverCreateSettings(), &Config{}, consumertest.NewNop(), nil)
 	assert.Nil(t, r)
 	require.Error(t, err)
 	assert.Equal(t, "config.Endpoint must be specified", err.Error())
 
-	r, err = NewReceiver(context.Background(), logger, &Config{Endpoint: "someEndpoint"}, &testbed.MockMetricConsumer{})
+	r, err = newReceiver(context.Background(), componenttest.NewNopReceiverCreateSettings(), &Config{Endpoint: "someEndpoint"}, consumertest.NewNop(), nil)
 	assert.Nil(t, r)
 	require.Error(t, err)
 	assert.Equal(t, "config.CollectionInterval must be specified", err.Error())
+}
+
+func TestScraperLoop(t *testing.T) {
+	cfg := createDefaultConfig()
+	cfg.CollectionInterval = 100 * time.Millisecond
+
+	client := make(mockClient)
+	consumer := make(mockConsumer)
+
+	r, err := newReceiver(context.Background(), componenttest.NewNopReceiverCreateSettings(), cfg, consumer, client.factory)
+	assert.NotNil(t, r)
+	require.NoError(t, err)
+
+	go func() {
+		client <- containerStatsReport{
+			Stats: []containerStats{{
+				ContainerID: "c1",
+			}},
+			Error: "",
+		}
+	}()
+
+	r.Start(context.Background(), componenttest.NewNopHost())
+
+	md := <-consumer
+	assert.Equal(t, md.ResourceMetrics().Len(), 1)
+
+	r.Shutdown(context.Background())
+}
+
+type mockClient chan containerStatsReport
+
+func (c mockClient) factory(logger *zap.Logger, cfg *Config) (client, error) {
+	return c, nil
+}
+
+func (c mockClient) stats() ([]containerStats, error) {
+	report := <-c
+	if report.Error != "" {
+		return nil, errors.New(report.Error)
+	}
+	return report.Stats, nil
+}
+
+type mockConsumer chan pdata.Metrics
+
+func (m mockConsumer) Capabilities() consumer.Capabilities {
+	return consumer.Capabilities{}
+}
+
+func (m mockConsumer) ConsumeMetrics(ctx context.Context, md pdata.Metrics) error {
+	m <- md
+	return nil
 }

@@ -22,7 +22,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
-	conventions "go.opentelemetry.io/collector/translator/conventions/v1.5.0"
+	conventions "go.opentelemetry.io/collector/model/semconv/v1.5.0"
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/processor/resourcedetectionprocessor/internal"
@@ -47,8 +47,9 @@ func TestDetectAzureAvailable(t *testing.T) {
 	}, nil)
 
 	detector := &Detector{provider: mp}
-	res, err := detector.Detect(context.Background())
+	res, schemaURL, err := detector.Detect(context.Background())
 	require.NoError(t, err)
+	assert.Equal(t, conventions.SchemaURL, schemaURL)
 	mp.AssertExpectations(t)
 	res.Attributes().Sort()
 
@@ -73,7 +74,7 @@ func TestDetectError(t *testing.T) {
 	mp.On("Metadata").Return(&ComputeMetadata{}, fmt.Errorf("mock error"))
 
 	detector := &Detector{provider: mp, logger: zap.NewNop()}
-	res, err := detector.Detect(context.Background())
+	res, _, err := detector.Detect(context.Background())
 	assert.NoError(t, err)
 	assert.True(t, internal.IsEmptyResource(res))
 }

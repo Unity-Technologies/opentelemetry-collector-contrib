@@ -29,14 +29,14 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/model/pdata"
-	"go.opentelemetry.io/collector/translator/trace/jaeger"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/internal/splunk"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/pkg/translator/jaeger"
 )
 
 func TestCreateTracesExporter(t *testing.T) {
 	cfg := &Config{
-		ExporterSettings:   config.NewExporterSettings(config.NewIDWithName(typeStr, "customname")),
+		ExporterSettings:   config.NewExporterSettings(config.NewComponentIDWithName(typeStr, "customname")),
 		Endpoint:           "test-endpoint",
 		AccessToken:        "abcd1234",
 		NumWorkers:         3,

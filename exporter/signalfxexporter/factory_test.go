@@ -28,7 +28,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
-	"go.opentelemetry.io/collector/config/configcheck"
+	"go.opentelemetry.io/collector/config/configtest"
 	"go.opentelemetry.io/collector/exporter/exporterhelper"
 	"go.opentelemetry.io/collector/model/pdata"
 	"go.uber.org/zap"
@@ -40,7 +40,7 @@ import (
 func TestCreateDefaultConfig(t *testing.T) {
 	cfg := createDefaultConfig()
 	assert.NotNil(t, cfg, "failed to create default config")
-	assert.NoError(t, configcheck.ValidateConfig(cfg))
+	assert.NoError(t, configtest.CheckConfigStruct(cfg))
 }
 
 func TestCreateMetricsExporter(t *testing.T) {
@@ -110,7 +110,7 @@ func TestCreateInstanceViaFactory(t *testing.T) {
 
 func TestCreateMetricsExporter_CustomConfig(t *testing.T) {
 	config := &Config{
-		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		AccessToken:      "testToken",
 		Realm:            "us1",
 		Headers: map[string]string{
@@ -134,7 +134,7 @@ func TestFactory_CreateMetricsExporterFails(t *testing.T) {
 		{
 			name: "negative_duration",
 			config: &Config{
-				ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+				ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 				AccessToken:      "testToken",
 				Realm:            "lab",
 				TimeoutSettings:  exporterhelper.TimeoutSettings{Timeout: -2 * time.Second},
@@ -144,7 +144,7 @@ func TestFactory_CreateMetricsExporterFails(t *testing.T) {
 		{
 			name: "empty_realm_and_urls",
 			config: &Config{
-				ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+				ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 				AccessToken:      "testToken",
 			},
 			errorMessage: "failed to process \"signalfx\" config: requires a non-empty \"realm\"," +
@@ -153,12 +153,24 @@ func TestFactory_CreateMetricsExporterFails(t *testing.T) {
 		{
 			name: "empty_realm_and_api_url",
 			config: &Config{
-				ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+				ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 				AccessToken:      "testToken",
 				IngestURL:        "http://localhost:123",
 			},
 			errorMessage: "failed to process \"signalfx\" config: requires a non-empty \"realm\"," +
 				" or \"ingest_url\" and \"api_url\" should be explicitly set",
+		},
+		{
+			name: "negative_MaxConnections",
+			config: &Config{
+				ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
+				AccessToken:      "testToken",
+				Realm:            "lab",
+				IngestURL:        "http://localhost:123",
+				APIURL:           "https://api.us1.signalfx.com/",
+				MaxConnections:   -10,
+			},
+			errorMessage: "failed to process \"signalfx\" config: cannot have a negative \"max_connections\"",
 		},
 	}
 	for _, tt := range tests {
@@ -250,7 +262,7 @@ func TestDefaultTranslationRules(t *testing.T) {
 
 func TestCreateMetricsExporterWithDefaultExcludeMetrics(t *testing.T) {
 	config := &Config{
-		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		AccessToken:      "testToken",
 		Realm:            "us1",
 	}
@@ -265,7 +277,7 @@ func TestCreateMetricsExporterWithDefaultExcludeMetrics(t *testing.T) {
 
 func TestCreateMetricsExporterWithExcludeMetrics(t *testing.T) {
 	config := &Config{
-		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		AccessToken:      "testToken",
 		Realm:            "us1",
 		ExcludeMetrics: []dpfilters.MetricFilter{
@@ -285,7 +297,7 @@ func TestCreateMetricsExporterWithExcludeMetrics(t *testing.T) {
 
 func TestCreateMetricsExporterWithEmptyExcludeMetrics(t *testing.T) {
 	config := &Config{
-		ExporterSettings: config.NewExporterSettings(config.NewID(typeStr)),
+		ExporterSettings: config.NewExporterSettings(config.NewComponentID(typeStr)),
 		AccessToken:      "testToken",
 		Realm:            "us1",
 		ExcludeMetrics:   []dpfilters.MetricFilter{},
@@ -310,22 +322,22 @@ func testMetricsData() pdata.ResourceMetrics {
 	m1.SetUnit("bytes")
 	m1.SetDataType(pdata.MetricDataTypeGauge)
 	dp11 := m1.Gauge().DataPoints().AppendEmpty()
-	dp11.LabelsMap().InitFromMap(map[string]string{
-		"state":              "used",
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp11.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"state":              pdata.NewAttributeValueString("used"),
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp11.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp11.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp11.SetIntVal(4e9)
 	dp12 := m1.Gauge().DataPoints().AppendEmpty()
-	dp12.LabelsMap().InitFromMap(map[string]string{
-		"state":              "free",
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp12.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"state":              pdata.NewAttributeValueString("free"),
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp12.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp12.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp12.SetIntVal(6e9)
 
 	m2 := ms.AppendEmpty()
@@ -333,38 +345,38 @@ func testMetricsData() pdata.ResourceMetrics {
 	m2.SetDescription("Disk I/O.")
 	m2.SetDataType(pdata.MetricDataTypeSum)
 	m2.Sum().SetIsMonotonic(true)
-	m2.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+	m2.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 	dp21 := m2.Sum().DataPoints().AppendEmpty()
-	dp21.LabelsMap().InitFromMap(map[string]string{
-		"host":      "host0",
-		"direction": "read",
-		"device":    "sda1",
+	dp21.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":      pdata.NewAttributeValueString("host0"),
+		"direction": pdata.NewAttributeValueString("read"),
+		"device":    pdata.NewAttributeValueString("sda1"),
 	}).Sort()
-	dp21.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp21.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp21.SetIntVal(1e9)
 	dp22 := m2.Sum().DataPoints().AppendEmpty()
-	dp22.LabelsMap().InitFromMap(map[string]string{
-		"host":      "host0",
-		"direction": "read",
-		"device":    "sda2",
+	dp22.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":      pdata.NewAttributeValueString("host0"),
+		"direction": pdata.NewAttributeValueString("read"),
+		"device":    pdata.NewAttributeValueString("sda2"),
 	}).Sort()
-	dp22.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp22.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp22.SetIntVal(2e9)
 	dp23 := m2.Sum().DataPoints().AppendEmpty()
-	dp23.LabelsMap().InitFromMap(map[string]string{
-		"host":      "host0",
-		"direction": "write",
-		"device":    "sda1",
+	dp23.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":      pdata.NewAttributeValueString("host0"),
+		"direction": pdata.NewAttributeValueString("write"),
+		"device":    pdata.NewAttributeValueString("sda1"),
 	}).Sort()
-	dp23.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp23.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp23.SetIntVal(3e9)
 	dp24 := m2.Sum().DataPoints().AppendEmpty()
-	dp24.LabelsMap().InitFromMap(map[string]string{
-		"host":      "host0",
-		"direction": "write",
-		"device":    "sda2",
+	dp24.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":      pdata.NewAttributeValueString("host0"),
+		"direction": pdata.NewAttributeValueString("write"),
+		"device":    pdata.NewAttributeValueString("sda2"),
 	}).Sort()
-	dp24.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp24.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp24.SetIntVal(8e9)
 
 	m3 := ms.AppendEmpty()
@@ -373,38 +385,38 @@ func testMetricsData() pdata.ResourceMetrics {
 	m3.SetUnit("bytes")
 	m3.SetDataType(pdata.MetricDataTypeSum)
 	m3.Sum().SetIsMonotonic(true)
-	m3.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+	m3.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 	dp31 := m3.Sum().DataPoints().AppendEmpty()
-	dp31.LabelsMap().InitFromMap(map[string]string{
-		"host":      "host0",
-		"direction": "read",
-		"device":    "sda1",
+	dp31.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":      pdata.NewAttributeValueString("host0"),
+		"direction": pdata.NewAttributeValueString("read"),
+		"device":    pdata.NewAttributeValueString("sda1"),
 	}).Sort()
-	dp31.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp31.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp31.SetIntVal(4e3)
 	dp32 := m3.Sum().DataPoints().AppendEmpty()
-	dp32.LabelsMap().InitFromMap(map[string]string{
-		"host":      "host0",
-		"direction": "read",
-		"device":    "sda2",
+	dp32.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":      pdata.NewAttributeValueString("host0"),
+		"direction": pdata.NewAttributeValueString("read"),
+		"device":    pdata.NewAttributeValueString("sda2"),
 	}).Sort()
-	dp32.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp32.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp32.SetIntVal(6e3)
 	dp33 := m3.Sum().DataPoints().AppendEmpty()
-	dp33.LabelsMap().InitFromMap(map[string]string{
-		"host":      "host0",
-		"direction": "write",
-		"device":    "sda1",
+	dp33.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":      pdata.NewAttributeValueString("host0"),
+		"direction": pdata.NewAttributeValueString("write"),
+		"device":    pdata.NewAttributeValueString("sda1"),
 	}).Sort()
-	dp33.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp33.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp33.SetIntVal(1e3)
 	dp34 := m3.Sum().DataPoints().AppendEmpty()
-	dp34.LabelsMap().InitFromMap(map[string]string{
-		"host":      "host0",
-		"direction": "write",
-		"device":    "sda2",
+	dp34.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":      pdata.NewAttributeValueString("host0"),
+		"direction": pdata.NewAttributeValueString("write"),
+		"device":    pdata.NewAttributeValueString("sda2"),
 	}).Sort()
-	dp34.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp34.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp34.SetIntVal(5e3)
 
 	m4 := ms.AppendEmpty()
@@ -413,38 +425,38 @@ func testMetricsData() pdata.ResourceMetrics {
 	m4.SetUnit("bytes")
 	m4.SetDataType(pdata.MetricDataTypeSum)
 	m4.Sum().SetIsMonotonic(true)
-	m4.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+	m4.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 	dp41 := m4.Sum().DataPoints().AppendEmpty()
-	dp41.LabelsMap().InitFromMap(map[string]string{
-		"device":    "sda1",
-		"direction": "read",
-		"host":      "host0",
+	dp41.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"device":    pdata.NewAttributeValueString("sda1"),
+		"direction": pdata.NewAttributeValueString("read"),
+		"host":      pdata.NewAttributeValueString("host0"),
 	}).Sort()
-	dp41.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000060, 0)))
+	dp41.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000060, 0)))
 	dp41.SetIntVal(6e3)
 	dp42 := m4.Sum().DataPoints().AppendEmpty()
-	dp42.LabelsMap().InitFromMap(map[string]string{
-		"device":    "sda2",
-		"direction": "read",
-		"host":      "host0",
+	dp42.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"device":    pdata.NewAttributeValueString("sda2"),
+		"direction": pdata.NewAttributeValueString("read"),
+		"host":      pdata.NewAttributeValueString("host0"),
 	}).Sort()
-	dp42.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000060, 0)))
+	dp42.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000060, 0)))
 	dp42.SetIntVal(8e3)
 	dp43 := m4.Sum().DataPoints().AppendEmpty()
-	dp43.LabelsMap().InitFromMap(map[string]string{
-		"device":    "sda1",
-		"direction": "write",
-		"host":      "host0",
+	dp43.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"device":    pdata.NewAttributeValueString("sda1"),
+		"direction": pdata.NewAttributeValueString("write"),
+		"host":      pdata.NewAttributeValueString("host0"),
 	}).Sort()
-	dp43.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000060, 0)))
+	dp43.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000060, 0)))
 	dp43.SetIntVal(3e3)
 	dp44 := m4.Sum().DataPoints().AppendEmpty()
-	dp44.LabelsMap().InitFromMap(map[string]string{
-		"device":    "sda2",
-		"direction": "write",
-		"host":      "host0",
+	dp44.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"device":    pdata.NewAttributeValueString("sda2"),
+		"direction": pdata.NewAttributeValueString("write"),
+		"host":      pdata.NewAttributeValueString("host0"),
 	}).Sort()
-	dp44.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000060, 0)))
+	dp44.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000060, 0)))
 	dp44.SetIntVal(7e3)
 
 	m5 := ms.AppendEmpty()
@@ -453,24 +465,24 @@ func testMetricsData() pdata.ResourceMetrics {
 	m5.SetUnit("bytes")
 	m5.SetDataType(pdata.MetricDataTypeGauge)
 	dp51 := m5.Gauge().DataPoints().AppendEmpty()
-	dp51.LabelsMap().InitFromMap(map[string]string{
-		"direction":          "receive",
-		"device":             "eth0",
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp51.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"direction":          pdata.NewAttributeValueString("receive"),
+		"device":             pdata.NewAttributeValueString("eth0"),
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp51.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp51.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp51.SetIntVal(4e9)
 	dp52 := m5.Gauge().DataPoints().AppendEmpty()
-	dp52.LabelsMap().InitFromMap(map[string]string{
-		"direction":          "transmit",
-		"device":             "eth0",
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp52.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"direction":          pdata.NewAttributeValueString("transmit"),
+		"device":             pdata.NewAttributeValueString("eth0"),
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp52.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp52.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp52.SetIntVal(6e9)
 
 	m6 := ms.AppendEmpty()
@@ -478,24 +490,24 @@ func testMetricsData() pdata.ResourceMetrics {
 	m6.SetDescription("The number of packets transferred")
 	m6.SetDataType(pdata.MetricDataTypeGauge)
 	dp61 := m6.Gauge().DataPoints().AppendEmpty()
-	dp61.LabelsMap().InitFromMap(map[string]string{
-		"direction":          "receive",
-		"device":             "eth0",
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp61.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"direction":          pdata.NewAttributeValueString("receive"),
+		"device":             pdata.NewAttributeValueString("eth0"),
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp61.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp61.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp61.SetIntVal(200)
 	dp62 := m6.Gauge().DataPoints().AppendEmpty()
-	dp62.LabelsMap().InitFromMap(map[string]string{
-		"direction":          "receive",
-		"device":             "eth1",
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp62.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"direction":          pdata.NewAttributeValueString("receive"),
+		"device":             pdata.NewAttributeValueString("eth1"),
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp62.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp62.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp62.SetIntVal(150)
 
 	m7 := ms.AppendEmpty()
@@ -503,36 +515,36 @@ func testMetricsData() pdata.ResourceMetrics {
 	m7.SetUnit("bytes")
 	m7.SetDataType(pdata.MetricDataTypeGauge)
 	dp71 := m7.Gauge().DataPoints().AppendEmpty()
-	dp71.LabelsMap().InitFromMap(map[string]string{
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp71.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp71.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp71.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp71.SetIntVal(1000)
 
 	m8 := ms.AppendEmpty()
 	m8.SetName("container.memory.page_faults")
 	m8.SetDataType(pdata.MetricDataTypeGauge)
 	dp81 := m8.Gauge().DataPoints().AppendEmpty()
-	dp81.LabelsMap().InitFromMap(map[string]string{
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp81.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp81.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp81.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp81.SetIntVal(1000)
 
 	m9 := ms.AppendEmpty()
 	m9.SetName("container.memory.major_page_faults")
 	m9.SetDataType(pdata.MetricDataTypeGauge)
 	dp91 := m9.Gauge().DataPoints().AppendEmpty()
-	dp91.LabelsMap().InitFromMap(map[string]string{
-		"host":               "host0",
-		"kubernetes_node":    "node0",
-		"kubernetes_cluster": "cluster0",
+	dp91.Attributes().InitFromMap(map[string]pdata.AttributeValue{
+		"host":               pdata.NewAttributeValueString("host0"),
+		"kubernetes_node":    pdata.NewAttributeValueString("node0"),
+		"kubernetes_cluster": pdata.NewAttributeValueString("cluster0"),
 	}).Sort()
-	dp91.SetTimestamp(pdata.TimestampFromTime(time.Unix(1596000000, 0)))
+	dp91.SetTimestamp(pdata.NewTimestampFromTime(time.Unix(1596000000, 0)))
 	dp91.SetIntVal(1000)
 
 	return rm
@@ -678,13 +690,13 @@ func getResourceMetrics(metrics []map[string]string) pdata.ResourceMetrics {
 		m.SetDataType(pdata.MetricDataTypeSum)
 		dp := m.Sum().DataPoints().AppendEmpty()
 		dp.SetIntVal(0)
-		labelsMap := dp.LabelsMap()
+		attributesMap := dp.Attributes()
 		for k, v := range mp {
 			if v == "" {
 				m.SetName(k)
 				continue
 			}
-			labelsMap.Insert(k, v)
+			attributesMap.InsertString(k, v)
 		}
 	}
 	return rms

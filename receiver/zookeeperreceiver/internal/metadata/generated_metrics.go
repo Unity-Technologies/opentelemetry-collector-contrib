@@ -121,28 +121,6 @@ func (m *metricStruct) ByName(n string) MetricIntf {
 	return metricsByName[n]
 }
 
-func (m *metricStruct) FactoriesByName() map[string]func(pdata.Metric) {
-	return map[string]func(pdata.Metric){
-		Metrics.ZookeeperApproximateDateSize.Name():   Metrics.ZookeeperApproximateDateSize.Init,
-		Metrics.ZookeeperConnectionsAlive.Name():      Metrics.ZookeeperConnectionsAlive.Init,
-		Metrics.ZookeeperEphemeralNodes.Name():        Metrics.ZookeeperEphemeralNodes.Init,
-		Metrics.ZookeeperFollowers.Name():             Metrics.ZookeeperFollowers.Init,
-		Metrics.ZookeeperFsyncThresholdExceeds.Name(): Metrics.ZookeeperFsyncThresholdExceeds.Init,
-		Metrics.ZookeeperLatencyAvg.Name():            Metrics.ZookeeperLatencyAvg.Init,
-		Metrics.ZookeeperLatencyMax.Name():            Metrics.ZookeeperLatencyMax.Init,
-		Metrics.ZookeeperLatencyMin.Name():            Metrics.ZookeeperLatencyMin.Init,
-		Metrics.ZookeeperMaxFileDescriptors.Name():    Metrics.ZookeeperMaxFileDescriptors.Init,
-		Metrics.ZookeeperOpenFileDescriptors.Name():   Metrics.ZookeeperOpenFileDescriptors.Init,
-		Metrics.ZookeeperOutstandingRequests.Name():   Metrics.ZookeeperOutstandingRequests.Init,
-		Metrics.ZookeeperPacketsReceived.Name():       Metrics.ZookeeperPacketsReceived.Init,
-		Metrics.ZookeeperPacketsSent.Name():           Metrics.ZookeeperPacketsSent.Init,
-		Metrics.ZookeeperPendingSyncs.Name():          Metrics.ZookeeperPendingSyncs.Init,
-		Metrics.ZookeeperSyncedFollowers.Name():       Metrics.ZookeeperSyncedFollowers.Init,
-		Metrics.ZookeeperWatches.Name():               Metrics.ZookeeperWatches.Init,
-		Metrics.ZookeeperZnodes.Name():                Metrics.ZookeeperZnodes.Init,
-	}
-}
-
 // Metrics contains a set of methods for each metric that help with
 // manipulating those metrics.
 var Metrics = &metricStruct{
@@ -190,7 +168,7 @@ var Metrics = &metricStruct{
 			metric.SetUnit("1")
 			metric.SetDataType(pdata.MetricDataTypeSum)
 			metric.Sum().SetIsMonotonic(true)
-			metric.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			metric.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 		},
 	},
 	&metricImpl{
@@ -255,7 +233,7 @@ var Metrics = &metricStruct{
 			metric.SetUnit("1")
 			metric.SetDataType(pdata.MetricDataTypeSum)
 			metric.Sum().SetIsMonotonic(true)
-			metric.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			metric.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 		},
 	},
 	&metricImpl{
@@ -266,7 +244,7 @@ var Metrics = &metricStruct{
 			metric.SetUnit("1")
 			metric.SetDataType(pdata.MetricDataTypeSum)
 			metric.Sum().SetIsMonotonic(true)
-			metric.Sum().SetAggregationTemporality(pdata.AggregationTemporalityCumulative)
+			metric.Sum().SetAggregationTemporality(pdata.MetricAggregationTemporalityCumulative)
 		},
 	},
 	&metricImpl{

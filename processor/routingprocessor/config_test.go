@@ -23,8 +23,9 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configtest"
-	"go.opentelemetry.io/collector/exporter/jaegerexporter"
 	"go.opentelemetry.io/collector/exporter/otlpexporter"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/jaegerexporter"
 )
 
 func TestLoadConfig(t *testing.T) {
@@ -43,10 +44,10 @@ func TestLoadConfig(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, cfg)
 
-	parsed := cfg.Processors[config.NewID(typeStr)]
+	parsed := cfg.Processors[config.NewComponentID(typeStr)]
 	assert.Equal(t, parsed,
 		&Config{
-			ProcessorSettings: config.NewProcessorSettings(config.NewID(typeStr)),
+			ProcessorSettings: config.NewProcessorSettings(config.NewComponentID(typeStr)),
 			DefaultExporters:  []string{"otlp"},
 			FromAttribute:     "X-Tenant",
 			Table: []RoutingTableItem{

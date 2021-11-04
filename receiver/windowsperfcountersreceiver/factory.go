@@ -20,7 +20,8 @@ import (
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/receiver/receiverhelper"
-	"go.opentelemetry.io/collector/receiver/scraperhelper"
+
+	"github.com/open-telemetry/opentelemetry-collector-contrib/receiver/scraperhelper"
 )
 
 // This file implements Factory for WindowsPerfCounters receiver.
@@ -40,7 +41,7 @@ func NewFactory() component.ReceiverFactory {
 func createDefaultConfig() config.Receiver {
 	return &Config{
 		ScraperControllerSettings: scraperhelper.ScraperControllerSettings{
-			ReceiverSettings:   config.NewReceiverSettings(config.NewID(typeStr)),
+			ReceiverSettings:   config.NewReceiverSettings(config.NewComponentID(typeStr)),
 			CollectionInterval: time.Minute,
 		},
 	}

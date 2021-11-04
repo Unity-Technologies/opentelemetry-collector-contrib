@@ -21,10 +21,10 @@ import (
 	"go.opentelemetry.io/collector/component/componenttest"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/consumer"
-	"go.opentelemetry.io/collector/testbed/testbed"
 	"go.uber.org/zap"
 
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/sapmexporter"
+	"github.com/open-telemetry/opentelemetry-collector-contrib/testbed/testbed"
 )
 
 // SapmDataSender implements TraceDataSender for SAPM protocol.
@@ -51,7 +51,7 @@ func NewSapmDataSender(port int) *SapmDataSender {
 func (je *SapmDataSender) Start() error {
 	factory := sapmexporter.NewFactory()
 	cfg := &sapmexporter.Config{
-		ExporterSettings:   config.NewExporterSettings(config.NewID(factory.Type())),
+		ExporterSettings:   config.NewExporterSettings(config.NewComponentID(factory.Type())),
 		Endpoint:           fmt.Sprintf("http://%s/v2/trace", je.GetEndpoint()),
 		DisableCompression: true,
 		AccessToken:        "MyToken",
