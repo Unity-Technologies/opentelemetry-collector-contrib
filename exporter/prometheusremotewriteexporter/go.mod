@@ -12,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.7.0
 	github.com/tidwall/wal v0.1.5
 	go.opentelemetry.io/collector v0.37.0
-	go.opentelemetry.io/collector/model v0.37.0
+	go.opentelemetry.io/collector/model v0.39.0
 	go.uber.org/multierr v1.7.0
 )
 
