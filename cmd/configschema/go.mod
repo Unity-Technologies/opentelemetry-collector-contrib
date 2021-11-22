@@ -333,7 +333,7 @@ require (
 	go.elastic.co/apm v1.14.0 // indirect
 	go.elastic.co/fastjson v1.1.0 // indirect
 	go.etcd.io/bbolt v1.3.6 // indirect
-	go.mongodb.org/atlas v0.12.0 // indirect
+	go.mongodb.org/atlas v0.13.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.25.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.25.0 // indirect
