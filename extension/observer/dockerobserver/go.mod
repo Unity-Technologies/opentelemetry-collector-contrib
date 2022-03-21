@@ -6,7 +6,7 @@ require (
 	github.com/docker/docker v20.10.9+incompatible
 	github.com/docker/go-connections v0.4.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/extension/observer v0.37.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.1
 	go.opentelemetry.io/collector v0.37.0
 	go.uber.org/zap v1.19.1
 
