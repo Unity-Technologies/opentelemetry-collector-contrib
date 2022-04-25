@@ -3,7 +3,7 @@ module github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsclo
 go 1.17
 
 require (
-	github.com/aws/aws-sdk-go v1.41.1
+	github.com/aws/aws-sdk-go v1.43.45
 	github.com/stretchr/testify v1.7.0
 	go.opentelemetry.io/collector v0.37.0
 	go.opentelemetry.io/collector/model v0.37.0
@@ -32,9 +32,9 @@ require (
 	go.opentelemetry.io/otel/trace v1.0.1 // indirect
 	go.uber.org/atomic v1.9.0 // indirect
 	go.uber.org/multierr v1.7.0 // indirect
-	golang.org/x/net v0.0.0-20210614182718-04defd469f4e // indirect
-	golang.org/x/sys v0.0.0-20210816074244-15123e1e1f71 // indirect
-	golang.org/x/text v0.3.6 // indirect
+	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
+	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
+	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/genproto v0.0.0-20210604141403-392c879c8b08 // indirect
 	google.golang.org/grpc v1.41.0 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
