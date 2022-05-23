@@ -3,7 +3,7 @@ module github.com/open-telemetry/opentelemetry-collector-contrib/receiver/mongod
 go 1.17
 
 require (
-	github.com/mongodb-forks/digest v1.0.3
+	github.com/mongodb-forks/digest v1.0.4
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/interval v0.37.1
 	go.mongodb.org/atlas v0.12.0
 	go.opentelemetry.io/collector v0.37.0
