@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/open-telemetry/opentelemetry-collector-contrib v0.37.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/pkg/resourcetotelemetry v0.37.1
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.7.2
 	go.opentelemetry.io/collector v0.37.0
 	go.opentelemetry.io/collector/model v0.37.0
 	golang.org/x/mod v0.4.2
@@ -368,7 +368,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.5.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	gopkg.in/zorkian/go-datadog-api.v2 v2.30.0 // indirect
 	k8s.io/api v0.22.2 // indirect
 	k8s.io/apimachinery v0.22.2 // indirect
