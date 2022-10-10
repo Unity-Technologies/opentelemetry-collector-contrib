@@ -6,7 +6,7 @@ require (
 	github.com/stretchr/testify v1.8.0
 	github.com/tg123/go-htpasswd v1.2.0
 	go.opentelemetry.io/collector v0.60.1-0.20220923151520-96e9af35c002
-	google.golang.org/grpc v1.49.0
+	google.golang.org/grpc v1.50.0
 )
 
 require (
