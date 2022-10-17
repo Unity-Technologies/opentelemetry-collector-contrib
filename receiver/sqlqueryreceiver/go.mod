@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/SAP/go-hdb v0.108.2
-	github.com/denisenkom/go-mssqldb v0.12.2
+	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/docker/go-connections v0.4.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/lib/pq v1.10.7
