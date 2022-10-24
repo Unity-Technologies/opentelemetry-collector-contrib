@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	github.com/facebook/time v0.0.0-20220713225404-f7a0d7702d50
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.1
 	github.com/tilinna/clock v1.1.0
 	go.opentelemetry.io/collector v0.60.1-0.20220923151520-96e9af35c002
 	go.opentelemetry.io/collector/pdata v0.60.1-0.20220923151520-96e9af35c002
@@ -25,7 +25,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/otel v1.10.0 // indirect
 	go.opentelemetry.io/otel/metric v0.32.1 // indirect
