@@ -8,7 +8,7 @@ require (
 
 )
 
-require go.uber.org/multierr v1.8.0
+require go.uber.org/multierr v1.9.0
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.3.0
