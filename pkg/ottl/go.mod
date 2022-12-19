@@ -9,7 +9,7 @@ require (
 	go.opentelemetry.io/collector v0.60.1-0.20220923151520-96e9af35c002
 	go.opentelemetry.io/collector/pdata v0.60.1-0.20220923151520-96e9af35c002
 	go.opentelemetry.io/otel/trace v1.10.0
-	go.uber.org/multierr v1.8.0
+	go.uber.org/multierr v1.9.0
 	golang.org/x/exp v0.0.0-20220722155223-a9213eeb770e
 )
 
