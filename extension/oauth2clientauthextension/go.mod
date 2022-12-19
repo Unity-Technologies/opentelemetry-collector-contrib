@@ -48,4 +48,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-require go.uber.org/multierr v1.8.0
+require go.uber.org/multierr v1.9.0
