@@ -7,7 +7,7 @@ require (
 	github.com/SermoDigital/jose v0.9.2-0.20161205224733-f6df55f235c2
 	github.com/stretchr/testify v1.8.0
 	go.opentelemetry.io/collector v0.60.1-0.20220923151520-96e9af35c002
-	go.uber.org/multierr v1.8.0
+	go.uber.org/multierr v1.9.0
 	google.golang.org/grpc v1.49.0
 )
 
