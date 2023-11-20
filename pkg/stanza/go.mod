@@ -3,14 +3,14 @@ module github.com/open-telemetry/opentelemetry-collector-contrib/pkg/stanza
 go 1.18
 
 require (
-	github.com/antonmedv/expr v1.9.0
+	github.com/antonmedv/expr v1.15.4
 	github.com/bmatcuk/doublestar/v3 v3.0.0
 	github.com/jpillora/backoff v1.0.0
 	github.com/json-iterator/go v1.1.12
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/observiq/ctimefmt v1.0.0
 	github.com/observiq/nanojack v0.0.0-20201106172433-343928847ebc
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.4
 	go.opentelemetry.io/collector v0.60.1-0.20220923151520-96e9af35c002
 	go.uber.org/zap v1.23.0
 	golang.org/x/exp v0.0.0-20200331195152-e8c3332aa8e5 // indirect
@@ -40,7 +40,7 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.6.1 // indirect
-	github.com/stretchr/objx v0.4.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	go.opencensus.io v0.23.0 // indirect
 	go.opentelemetry.io/otel v1.10.0 // indirect
 	go.opentelemetry.io/otel/metric v0.32.1 // indirect
