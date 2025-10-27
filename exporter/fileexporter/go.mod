@@ -1,9 +1,9 @@
 module github.com/open-telemetry/opentelemetry-collector-contrib/exporter/fileexporter
 
-go 1.18
+go 1.23
 
 require (
-	github.com/klauspost/compress v1.15.10
+	github.com/klauspost/compress v1.18.1
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/coreinternal v0.60.0
 	github.com/open-telemetry/opentelemetry-collector-contrib/internal/sharedcomponent v0.60.0
 	github.com/stretchr/testify v1.8.0
